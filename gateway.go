@@ -64,8 +64,13 @@ func New(opts ...Option) *Gateway {
 	if g.clk == nil {
 		g.clk = clock.Real{}
 	}
-	// BUG: 缺省不安装 Authenticator，保持 nil
-	_ = g.defaultToken
+	if g.authn == nil {
+		tok := g.defaultToken
+		if tok == "" {
+			tok = "dev-token"
+		}
+		g.authn = auth.NewTokenAuth(tok)
+	}
 	if g.client == nil {
 		g.client = &http.Client{Timeout: g.proxyTimeout}
 	}
