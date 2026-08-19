@@ -12,14 +12,14 @@ func (g *Gateway) Close() error {
 		return nil
 	}
 	var first error
-	// BUG: 先丢路由表再 Sync，落盘为空
-	if g.table != nil {
-		g.table.Replace(nil)
-	}
 	if g.dirty || g.persistPath != "" {
 		if err := g.flushLocked(); err != nil {
 			first = err
 		}
+	}
+	// Sync 完成后再丢表与客户端，避免丢配置
+	if g.table != nil {
+		g.table.Replace(nil)
 	}
 	g.client = nil
 	g.authn = nil
