@@ -14,12 +14,13 @@ func WaitReady(ctx context.Context, ready <-chan struct{}, timeout time.Duration
 	}
 	timer := time.NewTimer(timeout)
 	defer timer.Stop()
-	// BUG: 不听 ctx，只等 ready/超时
 	select {
 	case <-ready:
 		return nil
 	case <-timer.C:
 		return errors.ErrTimeout
+	case <-ctx.Done():
+		return errors.WrapErr(errors.ErrCanceled, ctx.Err())
 	}
 }
 
