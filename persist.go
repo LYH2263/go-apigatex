@@ -30,6 +30,16 @@ func (g *Gateway) flushLocked() error {
 	for _, r := range rows {
 		specs = append(specs, fromInternalRoute(r))
 	}
+	if err := g.writePersistFile(specs); err != nil {
+		return err
+	}
+	g.dirty = false
+	return nil
+}
+
+// writePersistFile 原子地把 specs 写入 persistPath，不触碰内存路由表。
+// 供 flushLocked（落盘当前表）与 ReloadRoutes（落盘候选表）共用。
+func (g *Gateway) writePersistFile(specs []RouteSpec) error {
 	raw, err := json.MarshalIndent(persistFile{Routes: specs}, "", "  ")
 	if err != nil {
 		return errors.WrapErr(ErrPersist, err)
@@ -46,7 +56,6 @@ func (g *Gateway) flushLocked() error {
 		_ = os.Remove(tmp)
 		return errors.WrapErr(ErrPersist, err)
 	}
-	g.dirty = false
 	return nil
 }
 
@@ -104,18 +113,18 @@ func (g *Gateway) ReloadRoutes(specs []RouteSpec, persistFn func([]RouteSpec) er
 		candidates = append(candidates, toInternalRoute(spec, g.clk.Now()))
 		views = append(views, spec)
 	}
-	// BUG: 先生效路由，再持久化；失败仍保留新表
-	g.table.Replace(candidates)
-	g.dirty = true
+	// 先持久化候选路由，落盘成功后才替换内存路由，保证原子性：
+	// 写盘失败时内存仍为旧表，新路由不生效。
 	if persistFn != nil {
 		if err := persistFn(views); err != nil {
 			return errors.WrapErr(ErrPersist, err)
 		}
 	} else if g.persistPath != "" {
-		if err := g.flushLocked(); err != nil {
+		if err := g.writePersistFile(views); err != nil {
 			return err
 		}
 	}
+	g.table.Replace(candidates)
 	g.dirty = persistFn == nil && g.persistPath == ""
 	return nil
 }
