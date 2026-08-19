@@ -49,12 +49,8 @@ func (e *Engine) Forward(ctx context.Context, in Request) (*Response, error) {
 	if e == nil || e.Client == nil {
 		return nil, errors.ErrNilTransport
 	}
-	if ctx == nil {
-		ctx = context.Background()
-	}
-	if err := ctx.Err(); err != nil {
-		return nil, errors.WrapErr(errors.ErrCanceled, err)
-	}
+	// BUG: 忽略调用方 ctx，不响应取消
+	ctx = context.Background()
 	base := in.Upstream
 	if e.Pool != nil {
 		base = e.Pool.ResolveURL(in.RouteID, base)
@@ -73,7 +69,7 @@ func (e *Engine) Forward(ctx context.Context, in Request) (*Response, error) {
 	if in.Body != nil {
 		rdr = bytes.NewReader(in.Body)
 	}
-	req, err := http.NewRequestWithContext(ctx, in.Method, urlStr, rdr)
+	req, err := http.NewRequest(in.Method, urlStr, rdr)
 	if err != nil {
 		return nil, errors.WrapErr(errors.ErrUpstream, err)
 	}
