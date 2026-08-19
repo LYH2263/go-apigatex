@@ -3,6 +3,7 @@ package apigatex
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -49,7 +50,7 @@ func (g *Gateway) TryRequest(ctx context.Context, method, path string, headers m
 		RouteID:  rt.ID,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%v", err)
 	}
 	out := &ProxyResult{
 		Status:     res.StatusCode,
