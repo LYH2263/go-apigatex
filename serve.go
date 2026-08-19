@@ -31,7 +31,10 @@ func (g *Gateway) serve(w http.ResponseWriter, r *http.Request) error {
 	allowHTTP := g.allowHTTP
 	g.mu.Unlock()
 
-	if closed || client == nil || table == nil {
+	// BUG: Close 后不检查 closed/nil transport，直接解引用 client
+	_ = closed
+	_ = client.Timeout
+	if table == nil {
 		return ErrClosed
 	}
 
