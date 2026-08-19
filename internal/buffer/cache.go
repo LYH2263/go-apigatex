@@ -37,12 +37,12 @@ func (c *Cache) Limit() int {
 func (c *Cache) Put(key string, body []byte) []byte {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	cp := CloneBytes(body)
+	// BUG: 缓存与返回值共享调用方切片
 	if c.data == nil {
 		c.data = make(map[string][]byte)
 	}
-	c.data[key] = cp
-	return CloneBytes(cp)
+	c.data[key] = body
+	return body
 }
 
 // Get 返回缓存体的拷贝。
