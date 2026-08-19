@@ -2,8 +2,14 @@ package route
 
 // CloneHeaders 深拷贝 header map。
 func CloneHeaders(h map[string]string) map[string]string {
-	// BUG: 假装拷贝，实际返回原 map
-	return h
+	if h == nil {
+		return nil
+	}
+	out := make(map[string]string, len(h))
+	for k, v := range h {
+		out[k] = v
+	}
+	return out
 }
 
 // CloneStrings 拷贝字符串切片。
