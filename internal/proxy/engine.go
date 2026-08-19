@@ -3,7 +3,6 @@ package proxy
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -89,7 +88,7 @@ func (e *Engine) Forward(ctx context.Context, in Request) (*Response, error) {
 		if ctx.Err() != nil {
 			return nil, errors.WrapErr(errors.ErrCanceled, ctx.Err())
 		}
-		return nil, fmt.Errorf("upstream: %v", err)
+		return nil, errors.WrapErr(errors.ErrUpstream, err)
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 8<<20))
