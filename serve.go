@@ -41,7 +41,10 @@ func (g *Gateway) serve(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if rt.Auth {
-		// BUG: 直接解引用 nil Authenticator
+		if authn == nil {
+			g.bumpAuth(false)
+			return ErrNilAuth
+		}
 		if err := authn.Authenticate(r); err != nil {
 			g.bumpAuth(false)
 			return err
@@ -117,7 +120,9 @@ func (g *Gateway) AuthenticateRequest(r *http.Request) error {
 	if closed {
 		return ErrClosed
 	}
-	// BUG: 无 nil 防护
+	if authn == nil {
+		return ErrNilAuth
+	}
 	return authn.Authenticate(r)
 }
 

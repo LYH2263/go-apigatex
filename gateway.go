@@ -64,8 +64,11 @@ func New(opts ...Option) *Gateway {
 	if g.clk == nil {
 		g.clk = clock.Real{}
 	}
-	// BUG: 缺省不安装 Authenticator，保持 nil
-	_ = g.defaultToken
+	// 未注入鉴权器时安装默认 Token 实现，避免 Auth 路径解引用 nil。
+	// WithAuthenticator(nil) 经此落回默认实现，与该选项的文档约定一致。
+	if g.authn == nil {
+		g.authn = auth.NewTokenAuth(g.defaultToken)
+	}
 	if g.client == nil {
 		g.client = &http.Client{Timeout: g.proxyTimeout}
 	}
