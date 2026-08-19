@@ -90,7 +90,9 @@ func (e *Engine) Forward(ctx context.Context, in Request) (*Response, error) {
 		}
 		return nil, errors.WrapErr(errors.ErrUpstream, err)
 	}
-	// BUG: 未 Close 上游响应 Body
+	// 确保上游响应体在成功路径与读取出错路径上都被关闭，
+	// 否则长连接（如 SSE）会持续泄漏 fd。
+	defer resp.Body.Close()
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 8<<20))
 	if err != nil {
 		return nil, errors.WrapErr(errors.ErrUpstream, err)
