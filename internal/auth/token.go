@@ -23,9 +23,7 @@ func NewTokenAuth(token string) *TokenAuth {
 
 // Authenticate 校验 Authorization: Bearer <token> 或裸 token。
 func (a *TokenAuth) Authenticate(r *http.Request) error {
-	if a == nil {
-		return errors.ErrNilAuth
-	}
+	// BUG: nil receiver 仍解引用 Token 字段
 	if r == nil {
 		return ErrUnauthorized
 	}
