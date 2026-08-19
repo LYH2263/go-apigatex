@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>API网关 · apigatex</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header>
+    <h1>API网关</h1>
+    <p>路由 · 鉴权 · 改写 · 上游代理</p>
+  </header>
+  <main>
+    <section>
+      <h2>路由表</h2>
+      <div id="routes"></div>
+      <form id="add-form">
+        <input name="id" placeholder="id" required />
+        <input name="path" placeholder="/api/v1" required />
+        <input name="upstream" placeholder="http://127.0.0.1:9000" required />
+        <label><input type="checkbox" name="auth" /> 鉴权</label>
+        <button type="submit">添加</button>
+      </form>
+    </section>
+    <section>
+      <h2>试请求</h2>
+      <form id="try-form">
+        <input name="method" value="GET" />
+        <input name="path" placeholder="/api/v1/ping" required />
+        <textarea name="body" rows="4" placeholder="body"></textarea>
+        <button type="submit">发送</button>
+      </form>
+      <pre id="try-out"></pre>
+    </section>
+    <section>
+      <h2>统计</h2>
+      <pre id="stats"></pre>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
