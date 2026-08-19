@@ -104,18 +104,21 @@ func (g *Gateway) ReloadRoutes(specs []RouteSpec, persistFn func([]RouteSpec) er
 		candidates = append(candidates, toInternalRoute(spec, g.clk.Now()))
 		views = append(views, spec)
 	}
-	// BUG: 先生效路由，再持久化；失败仍保留新表
-	g.table.Replace(candidates)
-	g.dirty = true
 	if persistFn != nil {
 		if err := persistFn(views); err != nil {
 			return errors.WrapErr(ErrPersist, err)
 		}
 	} else if g.persistPath != "" {
+		// 无自定义 persist：先写盘再替换
+		old := g.table.List()
+		g.table.Replace(candidates)
 		if err := g.flushLocked(); err != nil {
+			g.table.Replace(old)
 			return err
 		}
+		return nil
 	}
-	g.dirty = persistFn == nil && g.persistPath == ""
+	g.table.Replace(candidates)
+	g.dirty = persistFn == nil
 	return nil
 }
