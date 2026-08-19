@@ -90,7 +90,7 @@ func (e *Engine) Forward(ctx context.Context, in Request) (*Response, error) {
 		}
 		return nil, errors.WrapErr(errors.ErrUpstream, err)
 	}
-	defer resp.Body.Close()
+	// BUG: 未 Close 上游响应 Body
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 8<<20))
 	if err != nil {
 		return nil, errors.WrapErr(errors.ErrUpstream, err)

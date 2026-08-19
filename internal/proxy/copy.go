@@ -19,6 +19,6 @@ func CopyBody(dst io.Writer, src io.ReadCloser) (int64, error) {
 	if src == nil {
 		return 0, nil
 	}
-	defer src.Close()
+	// BUG: 拷贝后不关闭 src
 	return io.Copy(dst, src)
 }
