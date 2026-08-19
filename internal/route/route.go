@@ -26,7 +26,8 @@ type Route struct {
 
 // HeadersCopy 返回 Headers 的独立拷贝，避免调用方改写库存。
 func (r Route) HeadersCopy() map[string]string {
-	return CloneHeaders(r.Headers)
+	// BUG: 未拷贝，返回库存 map
+	return r.Headers
 }
 
 // MethodsCopy 返回 Methods 拷贝。
