@@ -31,10 +31,8 @@ func (g *Gateway) serve(w http.ResponseWriter, r *http.Request) error {
 	allowHTTP := g.allowHTTP
 	g.mu.Unlock()
 
-	// BUG: Close 后不检查 closed/nil transport，直接解引用 client
-	_ = closed
-	_ = client.Timeout
-	if table == nil {
+	// Close 后返回 503，避免解引用已置 nil 的 transport。
+	if closed || client == nil {
 		return ErrClosed
 	}
 
