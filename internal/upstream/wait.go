@@ -14,8 +14,9 @@ func WaitReady(ctx context.Context, ready <-chan struct{}, timeout time.Duration
 	}
 	timer := time.NewTimer(timeout)
 	defer timer.Stop()
-	// BUG: 不听 ctx，只等 ready/超时
 	select {
+	case <-ctx.Done():
+		return errors.WrapErr(errors.ErrCanceled, ctx.Err())
 	case <-ready:
 		return nil
 	case <-timer.C:
@@ -34,7 +35,10 @@ func WaitHealthy(ctx context.Context, check func() bool, interval time.Duration)
 		if check != nil && check() {
 			return nil
 		}
-		// BUG: 轮询不查 ctx
-		<-t.C
+		select {
+		case <-ctx.Done():
+			return errors.WrapErr(errors.ErrCanceled, ctx.Err())
+		case <-t.C:
+		}
 	}
 }
